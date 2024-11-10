@@ -1,3 +1,19 @@
+################################################
+# Programmeerimine I
+# 2024/2025 sügissemester
+#
+# Projekt
+# Teema: Õppeprogramm "flashcards"
+#
+#
+# Autorid: Kuldar Lilleõis, Kaspar Matkur
+#
+# mõningane eeskuju:
+#
+# Lisakommentaar (nt käivitusjuhend):
+#
+##################################################
+
 import tkinter as tk #GUI moodul alisasega tk, et oleks lihtsam koodis välja
 from tkinter import messagebox, simpledialog, ttk # Kutsusin lisa funktsioonid mis ei töödanud kui kutsuda ainult tkinteri moodul
 import os
@@ -10,14 +26,14 @@ KAARDID_FAIL = os.path.join(os.path.dirname(__file__), "õppekaardid.json")
 # Laeb json failist eelnevalt lisatud õppekaardid
 def lae_õppekaardid():
     try:
-        with open(KAARDID_FAIL, "r") as f:
+        with open(KAARDID_FAIL, "r", encoding="utf-8") as f:
             return json.load(f).get("kaardid", {})
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
 # Kirjutab lisatud õppekaardi json faili
 def salvesta_õppekaardid(kaardid):
-    with open(KAARDID_FAIL, "w") as f:
+    with open(KAARDID_FAIL, "w", encoding="utf-8") as f:
         json.dump({"kaardid": kaardid}, f, indent=4)
 
 
@@ -139,8 +155,10 @@ class MälukaardiRakendus:
         õpi_raam.pack(pady=20, padx=20)
         järgmine_küsimus(0)
 
-# Põhiprogrammi algus
+def main():
+    juur = tk.Tk() # tkinteri peaakna loomiseks
+    rakendus = MälukaardiRakendus(juur) # Aktiveerib rakenduse ja seob selle kasutajaliidesega
+    juur.mainloop() # Programmi töö toimub selles kuni kasutaja otsustab väljuda
 
-juur = tk.Tk() # tkinteri peaakna loomiseks
-rakendus = MälukaardiRakendus(juur) # Aktiveerib rakenduse ja seob selle kasutajaliidesega
-juur.mainloop() # Programmi töö toimub selles kuni kasutaja otsustab väljuda
+# Põhiprogrammi algus
+main()
