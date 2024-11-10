@@ -8,9 +8,9 @@
 #
 # Autorid: Kuldar Lilleõis, Kaspar Matkur
 #
-# mõningane eeskuju:
+# Mõningane eeskuju:
 #
-# Lisakommentaar (nt käivitusjuhend):
+# Lisakommentaar (nt käivitusjuhend): 
 #
 ##################################################
 
