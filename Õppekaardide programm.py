@@ -90,6 +90,15 @@ class MälukaardiRakendus:
         lõuend.create_window((0, 0), window=kerimisraam, anchor="nw")
         lõuend.configure(yscrollcommand=kerimisriba.set)
 
+        # Windows kerimine
+        def on_mouse_wheel(event):
+            lõuend.yview_scroll(-1 * (event.delta // 120), "units")
+        lõuend.bind_all("<MouseWheel>", on_mouse_wheel)
+
+        # Linux kerimine
+        lõuend.bind("<Button-4>", lambda e: lõuend.yview_scroll(-1, "units"))
+        lõuend.bind("<Button-5>", lambda e: lõuend.yview_scroll(1, "units"))
+
         lõuend.pack(side="left", fill="both", expand=True)
         kerimisriba.pack(side="right", fill="y")
 
@@ -131,7 +140,7 @@ class MälukaardiRakendus:
             küsimus = küsimused[indeks]
             vastus = self.kaardid[küsimus]
 
-            def kontrolli_vastust():
+            def kontrolli_vastust(event=None):
                 kasutaja_vastus = vastuse_sisestus.get().strip()
                 if kasutaja_vastus.lower() == vastus.lower():
                     messagebox.showinfo("Õige!", "Teie vastus on õige!")
@@ -146,6 +155,9 @@ class MälukaardiRakendus:
             vastuse_sisestus = tk.Entry(õpi_raam, font=("Arial", 12))
             vastuse_sisestus.pack(pady=10)
             tk.Button(õpi_raam, text="Esita vastus", command=kontrolli_vastust).pack(pady=5)
+            # Enter bind "Esita vastus" nupule
+            vastuse_sisestus.bind("<Return>", kontrolli_vastust)
+            vastuse_sisestus.focus()
 
         # Loob uue akna kus kasutaja õpib õppekaardidega
         õpiaken = tk.Toplevel(self.aken)
