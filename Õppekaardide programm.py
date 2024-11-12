@@ -91,9 +91,7 @@ class MälukaardiRakendus:
         lõuend.configure(yscrollcommand=kerimisriba.set)
 
         # Windows kerimine
-        def on_mouse_wheel(event):
-            lõuend.yview_scroll(-1 * (event.delta // 120), "units")
-        lõuend.bind_all("<MouseWheel>", on_mouse_wheel)
+        lõuend.bind_all("<MouseWheel>", lambda e: lõuend.yview_scroll(-1 * (e.delta // 120), "units"))
 
         # Linux kerimine
         lõuend.bind("<Button-4>", lambda e: lõuend.yview_scroll(-1, "units"))
