@@ -48,10 +48,13 @@ class MälukaardiRakendus:
         self.pearaam = tk.Frame(self.aken)
         self.pearaam.pack(pady=20)
 
-        tk.Button(self.pearaam, text="Õpi õppekaardidega", command=self.õpi_kaarte, width=20).pack(pady=5)
+        tk.Button(self.pearaam, text="Õpi!", command=self.õpi_kaarte, width=20).pack(pady=5)
+        tk.Button(self.pearaam, text="Harjutus mood", command=self.harjutus_mood, width=20).pack(pady=5)
         tk.Button(self.pearaam, text="Vaata kõiki õppekaarte", command=self.vaata_kaarte, width=20).pack(pady=5)
         tk.Button(self.pearaam, text="Loo uus õppekaart", command=self.loo_õppekaart, width=20).pack(pady=5)
+        tk.Button(self.pearaam, text="Pööra õppekaardid", command=self.pöörata_kaarte, width=20).pack(pady=5)
         tk.Button(self.pearaam, text="Välju", command=self.aken.quit, width=20).pack(pady=5)
+
 
     # Funkstioon uute kaardide loomiseks ja json faili salvestamiseks
     def loo_õppekaart(self):
@@ -153,7 +156,6 @@ class MälukaardiRakendus:
             vastuse_sisestus = tk.Entry(õpi_raam, font=("Arial", 12))
             vastuse_sisestus.pack(pady=10)
             tk.Button(õpi_raam, text="Esita vastus", command=kontrolli_vastust).pack(pady=5)
-            # Enter bind "Esita vastus" nupule
             vastuse_sisestus.bind("<Return>", kontrolli_vastust)
             vastuse_sisestus.focus()
 
@@ -164,6 +166,68 @@ class MälukaardiRakendus:
         õpi_raam = tk.Frame(õpiaken)
         õpi_raam.pack(pady=20, padx=20)
         järgmine_küsimus(0)
+
+    # Harjutus mood funktsioon
+    def harjutus_mood(self):
+        if not self.kaardid:
+            messagebox.showinfo("Teade", "Ühtegi õppekaarti pole saadaval.")
+            return
+
+        # Kaardid listi
+        kaardid_list = list(self.kaardid.items())
+
+        def näita_vastust(vastus, küsimus, näidatav_tüüp):
+            for vidin in harjutus_raam.winfo_children():
+                vidin.destroy()
+
+            # Küsimus ja vastus aknal
+            tk.Label(harjutus_raam, text=küsimus, font=("Arial", 14)).pack(pady=10)
+            tk.Label(harjutus_raam, text=vastus, font=("Arial", 14, "bold")).pack(pady=10)
+
+            next_button = tk.Button(harjutus_raam, text="Järgmine kaart", command=järgmine_kaart)
+            next_button.pack(pady=5)
+            harjutus_aken.bind("<Return>", lambda event: järgmine_kaart())
+
+        def järgmine_kaart():
+            if not kaardid_list:
+                messagebox.showinfo("Lõpetatud", "Kõik kaardid on läbitud!")
+                harjutus_aken.destroy()
+                return
+
+            küsimus, vastus = kaardid_list.pop()
+            näidatav_tüüp = ["küsimus", "vastus"]
+            for vidin in harjutus_raam.winfo_children():
+                vidin.destroy()
+
+            tk.Label(harjutus_raam, text=küsimus, font=("Arial", 14)).pack(pady=10)
+
+            näita_nuppu = tk.Button(harjutus_raam, text="Näita vastust", command=lambda: näita_vastust(vastus, küsimus, näidatav_tüüp))
+            näita_nuppu.pack(pady=5)
+            harjutus_aken.bind("<Return>", lambda event: näita_nuppu.invoke())
+
+        # Avab harjutus moodi
+        harjutus_aken = tk.Toplevel(self.aken)
+        harjutus_aken.title("Harjutus Mood")
+        harjutus_aken.geometry("600x400")
+        harjutus_aken.focus_force() 
+
+        harjutus_raam = tk.Frame(harjutus_aken)
+        harjutus_raam.pack(pady=20, padx=20)
+
+        järgmine_kaart()
+
+        # Funktsioon kaartide pööramiseks
+    def pöörata_kaarte(self):
+        if not self.kaardid:
+            messagebox.showinfo("Teade", "Õppekaarte ei ole, mida pöörata.")
+            return
+
+        # Sõnastiku pööramine
+        pööratud_kaardid = {v: k for k, v in self.kaardid.items()}
+        self.kaardid = pööratud_kaardid
+        salvesta_õppekaardid(self.kaardid)
+        messagebox.showinfo("Õnnestus", "Õppekaardid on edukalt pööratud!")
+
 
 def main():
     juur = tk.Tk() # tkinteri peaakna loomiseks
