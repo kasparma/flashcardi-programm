@@ -1,0 +1,15 @@
+{
+    "komplektid": {
+        "Kivi": {
+            "teema": "Kivid",
+            "märksõnad": [
+                "hall",
+                "maa",
+                "etc"
+            ],
+            "kaardid": {
+                "Hall kivi": "Pole aimugi"
+            }
+        }
+    }
+}
