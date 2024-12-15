@@ -1,3 +1,13 @@
+################################################
+# Programmeerimine I
+# 2024/2025 sügissemester
+#
+# Projekt
+# Teema: Õppeprogramm "flashcards"
+#
+# Autorid: Kuldar Lilleõis, Kaspar Matkur
+##################################################
+
 import tkinter as tk
 from tkinter import ttk
 import json
@@ -72,7 +82,7 @@ class Rakendus(tk.Tk):
             if callback:
                 callback()
 
-        btn_ok = ttk.Button(overlay, text="OK", command=close_msg)
+        btn_ok = ttk.Button(overlay, text="OK (enter)", command=close_msg)
         btn_ok.pack(pady=10)
         btn_ok.focus_set()
 
@@ -95,7 +105,7 @@ class Rakendus(tk.Tk):
             if callback:
                 callback()
 
-        btn_ok = ttk.Button(overlay, text="OK", command=close_msg)
+        btn_ok = ttk.Button(overlay, text="OK (enter)", command=close_msg)
         btn_ok.pack(pady=10)
         btn_ok.focus_set()
 
@@ -111,11 +121,11 @@ class Rakendus(tk.Tk):
     def peamenüü(self):
         self.puhasta_raam()
 
-        ttk.Label(self.pearaam, text="Õppekaardide rakendus", font=("Arial", 20, "bold")).pack(pady=20)
+        ttk.Label(self.pearaam, text="Õppekaartide rakendus", font=("Arial", 20, "bold")).pack(pady=20)
 
         # Peamenüü nupud
         ttk.Button(self.pearaam, text="Hakka harjutama!", command=self.alusta_õpinguid, width=30).pack(pady=5)
-        ttk.Button(self.pearaam, text="Katseta oma teadmisi!", command=self.harjuta_juhuslik, width=30).pack(pady=5)
+        ttk.Button(self.pearaam, text="Testi oma teadmisi!", command=self.test_mood, width=30).pack(pady=5)
         ttk.Button(self.pearaam, text="Loo kaardikomplekt", command=self.loo_kaardikomplekt, width=30).pack(pady=5)
         ttk.Button(self.pearaam, text="Lisa kaart komplekti", command=self.lisa_kaart, width=30).pack(pady=5)
         ttk.Button(self.pearaam, text="Näita kaardikomplekte", command=self.näita_kaardikomplekte, width=30).pack(pady=5)
@@ -127,9 +137,8 @@ class Rakendus(tk.Tk):
             self.näita_sõnumit("Teade", "Ühtegi kaardikomplekti pole saadaval.")
             return
 
-        # Valik, millist komplekti harjutada
-        komplekt_nimed = ["— Vali komplekt —"] + list(self.komplektid.keys())  # Lisatud placeholder
-        valitud_komplekt = tk.StringVar(value=komplekt_nimed[0])  # Alustab placeholderiga
+        komplekt_nimed = ["— Vali komplekt —"] + list(self.komplektid.keys())
+        valitud_komplekt = tk.StringVar(value=komplekt_nimed[0])
 
         def alusta_valitud_komplektiga():
             komplekt_nimi = valitud_komplekt.get()
@@ -137,27 +146,38 @@ class Rakendus(tk.Tk):
             if not kaardid:
                 self.näita_sõnumit("Teade", "Valitud komplektis pole kaarte.")
                 return
-            näita_harjutus_režiim(kaardid)
+            näita_harjutus_režiim(kaardid, komplekt_nimi)
 
-        def näita_harjutus_režiim(kaardid):
+        def näita_harjutus_režiim(kaardid, komplekt_nimi):
             self.puhasta_raam()
             kaardid_list = list(kaardid.items())
+            original_kaardid = kaardid_list.copy()  # Säilitab kaardid, et saaks uuesti proovida kui tahab
+            praegune_kaart = [None, None]
 
             def näita_vastust(vastus, küsimus):
                 self.puhasta_raam()
                 ttk.Label(self.pearaam, text=küsimus, font=("Arial", 14)).pack(pady=10)
                 ttk.Label(self.pearaam, text=vastus, font=("Arial", 14, "bold")).pack(pady=10)
-                ttk.Button(self.pearaam, text="Järgmine kaart", command=järgmine_kaart).pack(pady=5)
+                ttk.Button(self.pearaam, text="Järgmine kaart (tühik)", command=järgmine_kaart).pack(pady=5)
+                self.bind('<space>', lambda event: järgmine_kaart())
 
             def järgmine_kaart():
                 if not kaardid_list:
-                    self.näita_sõnumit("Õnnestus", "Kõik kaardid on läbitud!", self.peamenüü)
+                    näita_lõpp_valikud()
                     return
 
                 küsimus, vastus = kaardid_list.pop(0)
+                praegune_kaart[0], praegune_kaart[1] = küsimus, vastus
                 self.puhasta_raam()
                 ttk.Label(self.pearaam, text=küsimus, font=("Arial", 14)).pack(pady=10)
-                ttk.Button(self.pearaam, text="Näita vastust", command=lambda: näita_vastust(vastus, küsimus)).pack(pady=5)
+                ttk.Button(self.pearaam, text="Näita vastust (tühik)", command=lambda: näita_vastust(vastus, küsimus)).pack(pady=5)
+                self.bind('<space>', lambda event: näita_vastust(vastus, küsimus))
+
+            def näita_lõpp_valikud():
+                self.puhasta_raam()
+                ttk.Label(self.pearaam, text="Kõik kaardid on läbitud!", font=("Arial", 16, "bold")).pack(pady=20)
+                ttk.Button(self.pearaam, text="Proovi uuesti", command=lambda: näita_harjutus_režiim(dict(original_kaardid), komplekt_nimi)).pack(pady=10)
+                ttk.Button(self.pearaam, text="Tagasi peamenüüsse", command=self.peamenüü).pack(pady=10)
 
             järgmine_kaart()
 
@@ -168,51 +188,82 @@ class Rakendus(tk.Tk):
         ttk.Button(self.pearaam, text="Alusta harjutamist", command=alusta_valitud_komplektiga).pack(pady=10)
         ttk.Button(self.pearaam, text="Tagasi", command=self.peamenüü).pack(pady=10)
 
-    def harjuta_juhuslik(self):
-        # Harjutus juhuslikult valitud komplektiga.
+    def test_mood(self):
+        # Programmi funktsioon kus kirjutad vastuse
         if not self.komplektid:
             self.näita_sõnumit("Teade", "Ühtegi kaardikomplekti pole saadaval.")
             return
 
-        # Valige juhuslik kaardikomplekt
-        komplekt_nimi = random.choice(list(self.komplektid.keys()))
-        kaardid = self.komplektid[komplekt_nimi]["kaardid"]
+        komplekt_nimed = ["— Vali komplekt —"] + list(self.komplektid.keys())
+        valitud_komplekt = tk.StringVar(value=komplekt_nimed[0])
 
-        if not kaardid:
-            self.näita_sõnumit("Teade", "Valitud komplektis pole kaarte.")
-            return
+        def alusta_testi():
+            komplekt_nimi = valitud_komplekt.get()
+            if komplekt_nimi == "— Vali komplekt —":
+                self.näita_veateadet("Viga", "Palun vali komplekt.")
+                return
+            kaardid = list(self.komplektid[komplekt_nimi]["kaardid"].items())
+            random.shuffle(kaardid) # juhuslikus järjekorras
+            näita_küsimus(kaardid, komplekt_nimi, 0, 0)
 
-        # Juhuslikult järjestatud küsimused
-        kaardid_list = list(kaardid.items())
-        random.shuffle(kaardid_list)
-
-        def lõpetamise_nupp():
-            self.puhasta_raam()
-            self.näita_sõnumit("Harjutamine lõpetatud", f"Sa harjutasid komplekti: {komplekt_nimi}", self.peamenüü)
-
-        def näita_vastust(vastus, küsimus):
-            self.puhasta_raam()
-            ttk.Label(self.pearaam, text=küsimus, font=("Arial", 14)).pack(pady=10)
-            ttk.Label(self.pearaam, text=vastus, font=("Arial", 14, "bold")).pack(pady=10)
-
-            ttk.Button(self.pearaam, text="Järgmine küsimus", command=järgmine_kaart).pack(pady=5)
-            ttk.Button(self.pearaam, text="Lõpeta", command=lõpetamise_nupp).pack(pady=5)
-
-        def järgmine_kaart():
-            if not kaardid_list:
-                self.näita_sõnumit("Õnnestus", "Kõik kaardid on läbitud!", lambda: lõpetamise_nupp())
+        def näita_küsimus(kaardid, komplekt_nimi, õiged_vastused, küsimusi_kokku):
+            if not kaardid:
+                näita_lõpp_valikud(komplekt_nimi, õiged_vastused, küsimusi_kokku)
                 return
 
-            küsimus, vastus = kaardid_list.pop(0)
+            küsimus, õige_vastus = kaardid[0]
             self.puhasta_raam()
 
-            ttk.Label(self.pearaam, text=küsimus, font=("Arial", 14)).pack(pady=10)
-            ttk.Button(self.pearaam, text="Näita vastust", command=lambda: näita_vastust(vastus, küsimus)).pack(pady=5)
-            ttk.Button(self.pearaam, text="Lõpeta", command=lõpetamise_nupp).pack(pady=5)
+            ttk.Label(self.pearaam, text=küsimus, font=("Arial", 14, "bold")).pack(pady=10)
+            vastus_var = tk.StringVar()
+            vastus_sisend = ttk.Entry(self.pearaam, textvariable=vastus_var, width=40)
+            vastus_sisend.pack(pady=10)
+            vastus_sisend.focus_set()
+
+            def kontrolli_vastust(event=None):
+                kasutaja_vastus = vastus_var.get().strip().lower()
+                õige_vastus_lower = õige_vastus.lower()
+                self.puhasta_raam()
+
+                if kasutaja_vastus == õige_vastus_lower:
+                    õiged_vastused_uus = õiged_vastused + 1
+                    ttk.Label(self.pearaam, text="Õige!", font=("Arial", 14, "bold"), foreground="green").pack(pady=10)
+                else:
+                    õiged_vastused_uus = õiged_vastused
+                    ttk.Label(self.pearaam, text="Vale", font=("Arial", 14, "bold"), foreground="red").pack(pady=10)
+            
+                küsimusi_kokku_uus = küsimusi_kokku + 1
+            
+                ttk.Label(self.pearaam, text=f"Küsimus: {küsimus}", font=("Arial", 12)).pack(pady=5)
+                ttk.Label(self.pearaam, text=f"Sinu vastus: {kasutaja_vastus}", font=("Arial", 12)).pack(pady=5)
+                ttk.Label(self.pearaam, text=f"Õige vastus: {õige_vastus}", font=("Arial", 12, "bold")).pack(pady=5)
+                ttk.Label(self.pearaam, text=f"Õigeid vastuseid: {õiged_vastused_uus}/{küsimusi_kokku_uus}", font=("Arial", 12, "bold")).pack(pady=5)
+            
+                if len(kaardid) > 1:
+                    ttk.Button(self.pearaam, text="Järgmine küsimus (üles nool)", command=lambda: näita_küsimus(kaardid[1:], komplekt_nimi, õiged_vastused_uus, küsimusi_kokku_uus)).pack(pady=10)
+                    self.bind('<Up>', lambda e: näita_küsimus(kaardid[1:], komplekt_nimi, õiged_vastused_uus, küsimusi_kokku_uus)) 
+                    # Üles noole nupp kuna tühik ja enter teevad bugiseks harjub ära :)
+                else:
+                    näita_lõpp_valikud(komplekt_nimi, õiged_vastused_uus, küsimusi_kokku_uus)
+
+            ttk.Button(self.pearaam, text="Kontrolli (enter)", command=kontrolli_vastust).pack(pady=10)
+            vastus_sisend.bind('<Return>', kontrolli_vastust)
+
+        def näita_lõpp_valikud(komplekt_nimi, õiged_vastused, küsimusi_kokku):
+            self.puhasta_raam()
+            ttk.Label(self.pearaam, text="Test on lõppenud!", font=("Arial", 16, "bold")).pack(pady=20)
+        
+            protsent = (õiged_vastused / küsimusi_kokku) * 100 if küsimusi_kokku > 0 else 0
+            ttk.Label(self.pearaam, text=f"Õigeid vastuseid: {õiged_vastused}/{küsimusi_kokku}", font=("Arial", 14)).pack(pady=5)
+            ttk.Label(self.pearaam, text=f"Õigete vastuste protsent: {protsent:.1f}%", font=("Arial", 14)).pack(pady=5)
+            ttk.Button(self.pearaam, text="Proovi uuesti", command=lambda: alusta_testi()).pack(pady=10)
+            ttk.Button(self.pearaam, text="Tagasi peamenüüsse", command=self.peamenüü).pack(pady=10)
 
         self.puhasta_raam()
-        ttk.Button(self.pearaam, text="Lõpeta", command=lõpetamise_nupp).pack(anchor="ne", pady=10, padx=10)
-        järgmine_kaart()
+        ttk.Label(self.pearaam, text="Vali kaardikomplekt testimiseks", font=("Arial", 16, "bold")).pack(pady=20)
+        ttk.OptionMenu(self.pearaam, valitud_komplekt, *komplekt_nimed).pack(pady=10)
+        ttk.Button(self.pearaam, text="Alusta testi", command=alusta_testi).pack(pady=10)
+        ttk.Button(self.pearaam, text="Tagasi", command=self.peamenüü).pack(pady=10)
 
     def loo_kaardikomplekt(self):
         self.puhasta_raam()
@@ -266,7 +317,9 @@ class Rakendus(tk.Tk):
             if küsimus and vastus:
                 self.komplektid[komplekt]["kaardid"][küsimus] = vastus
                 salvesta_komplektid(self.komplektid)
-                self.näita_sõnumit("Õnnestus", f"Kaart lisatud komplekti '{komplekt}'!", self.peamenüü)
+                self.näita_sõnumit("Õnnestus", f"Kaart lisatud komplekti '{komplekt}'!")
+                küsimus_var.set("")
+                vastus_var.set("")
             else:
                 self.näita_veateadet("Viga", "Küsimus või vastus ei tohi olla tühi.")
 
@@ -351,7 +404,7 @@ class Rakendus(tk.Tk):
         button_frame.pack(pady=10)
 
         # "Sort" Button
-        ttk.Button(button_frame, text="Sort", command=self.sorteeri_komplektid, width=20).pack(side="left", padx=10, pady=30)
+        ttk.Button(button_frame, text="Sorteeri", command=self.sorteeri_komplektid, width=20).pack(side="left", padx=10, pady=30)
 
         # "Tagasi" Button
         ttk.Button(button_frame, text="Tagasi", command=self.peamenüü, width=20).pack(side="left", padx=10)
